@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <div>サイトタイトル</div>
+        <div>ログイン、ログアウトのリンク
+            {% if request.user.is_authenticated %}
+            <div>ログイン中です</div>
+            <a href="{% url 'account_logout' %}">ログアウト</a>
+            {% else %}
+            <div>ログアウト中です</div>
+            <a href="{% url 'account_login' %}">ログイン</a>
+            {% endif %}
+        </div>
+    </header>
+    <main>
+        <!-- 商品一覧 -->
+        {% for product in products %}
+        <div>{{ product.name }}:{{ product.price }}円</div>
+
+        {% endfor %}
+
+
+
+    </main>
+</body>
+</html>

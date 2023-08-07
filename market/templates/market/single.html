@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <div>サイトタイトル</div>
+        <div>ログイン、ログアウトのリンク</div>
+    </header>
+    <main>
+        <h1>個別ページ</h1>
+        <!-- 商品一覧 -->
+        {% for product in products %}
+        <div>{{ product.name }}:{{ product.price }}円</div>
+
+        {% endfor %}
+
+    </main>
+</body>
+</html>
