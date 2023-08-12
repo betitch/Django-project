@@ -6,6 +6,7 @@ from .models import Product,Category
 # Create your views here.
 class IndexView(View):
     def get(self, request, *args, **kwargs):
+
         context = {}
 
         context["products"] = Product.objects.all()
@@ -17,11 +18,10 @@ class IndexView(View):
 index = IndexView.as_view()
 
 class SingleView(View):
-    def get(self, request, *args, **kwargs):
-        context = {}
+    def get(self, request, pk, *args, **kwargs):
 
-        context["products"] = Product.objects.all()
-
+        product = Product.objects.filter(id=pk).first()
+        context = {"products":product}
 
         return render(request, "market/single.html", context)
     
