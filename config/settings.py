@@ -38,12 +38,11 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 INSTALLED_APPS = [
     'market.apps.MarketConfig',  # apps.py のクラスを指定
 
-    'django.contrib.sites', # ←追加
-    'allauth', # ←追加
-    'allauth.account', # ←追加
-    'allauth.socialaccount', # ←追加
+    'django.contrib.sites',        # ←追加
+    'allauth',                     # ←追加
+    'allauth.account',             # ←追加
+    'allauth.socialaccount',       # ←追加
 
-    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -86,16 +85,33 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'django_sample',
-        'USER': 'postgres',
-        'PASSWORD': 'password',     # こういうのは環境変数にしとかないと、GitHUB とかに上げた時見られてしまう。
-        'HOST': 'db',
-        'PORT': 5432,
+# データベースの切り替え
+
+postgres  = False
+try:
+    from . local_settings import *   # local_settings.py は .gitignore に入っているので、
+    postgres = True                  # git 上では、postgres は False になり、sqlite3 が DB となる。
+except:
+    print("local_settings.pyを読み込み出来ませんでした。")
+
+if postgres:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': name,
+            'USER': user,
+            'PASSWORD': password,   # こういうのは環境変数にしとかないと、GitHUB とかに上げた時見られてしまう。
+            'HOST': host,
+            'PORT': 5432,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASS_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

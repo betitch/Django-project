@@ -21,7 +21,7 @@ class SingleView(View):
     def get(self, request, pk, *args, **kwargs):
 
         product = Product.objects.filter(id=pk).first()
-        context = {"products":product}
+        context = {"product":product}
 
         return render(request, "market/single.html", context)
     
