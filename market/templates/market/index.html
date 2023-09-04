@@ -1,14 +1,17 @@
 {% extends "market/base.html" %}
 
 
-{% block main %}                 
+
+{% block main %}   
+<div class="d-flex" style="overflow-x:auto;">
     <!-- 商品一覧 -->
-    {% for product in products %}
+    {% for product in products %}          <!-- products って views で定義されていた？ -->
     <div style="min-width: 200px;">
         {{ product.name }}:{{ product.price }}円<br>
         <a href="{% url 'market:single' product.id %}">個別ページ</a>
     </div>
     {% endfor %}
+</div>
 {% endblock %}
 
 

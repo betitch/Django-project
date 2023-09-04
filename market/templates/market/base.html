@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <header class="row position-fixed w-100 mb-3" style="height: 60px;">
+    <header class="row" style="position:sticky;top:0;">
         <div class="col-6 me-auto">
             <img src="{% static 'market/サイトロゴ.png' %}" style="width:250px;">
         </div>  
@@ -23,7 +23,7 @@
             {% endif %}
         </div> 
     </header>
-    <main class="d-flex" style="margin-top: 60px;">   <!-- margin-top が何故 header にも効いてしまうのかわからない。 -->
+    <main>  
         {% block main %}
         {% endblock %}
     </main>

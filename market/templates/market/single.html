@@ -2,5 +2,20 @@
 
 {% block main %}
 <div>{{ product.name }}:{{ product.price }}円</div>
+
+<h2>入札者一覧</h2>
+{% for cart in carts %}
+<div>{{ cart.user }} : {{ cart.price }}円</div>
+{% endfor %}
+
+<h2>入札フォーム</h2>
+
+{# フォームの送信先はSingleViewのpostメソッド #}
+<form action="" method="post">
+    {% csrf_token %}
+    <input type="number" name="price">
+    <input type="submit" value="入札">
+</form>
+
 {% endblock %}
 

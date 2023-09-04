@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User     # User の model と html ページの設定はどこ？    
 
 # Create your models here.
 class Category(models.Model):
@@ -17,13 +18,17 @@ class Product(models.Model):
     price = models.IntegerField(verbose_name='希望売却価格')
 
     # １対多でユーザーモデルと紐つける。 ユーザーはクラスを作らなくて良い。
+    user = models.ForeignKey(User, verbose_name='出品者', on_delete=models.SET_NULL, null=True, blank=True)
 
+    def __str__(self):
+        return self.name 
 
 class Cart(models.Model):
     product = models.ForeignKey(Product, verbose_name="商品", on_delete=models.CASCADE)  # 外部キー
-    price = models.IntegerField(verbose_name='希望売却価格')
+    price = models.IntegerField(verbose_name='希望購入価格')
 
     # １対多でユーザーモデルと紐つける。
+    user = models.ForeignKey(User, verbose_name='購入希望者', on_delete=models.CASCADE, null=True, blank=True)
 
 
 class Message(models.Model):
@@ -32,3 +37,4 @@ class Message(models.Model):
 
     dt = models.DateTimeField(verbose_name="投稿日時", default=timezone.now)
     # １対多でユーザーモデルと紐つける。
+    user = models.ForeignKey(User, verbose_name='投稿者', on_delete=models.SET_NULL, null=True, blank=True)
