@@ -11,7 +11,7 @@
 <body>
     <header class="row" style="position:sticky;top:0;">
         <div class="col-6 me-auto">
-            <img src="{% static 'market/サイトロゴ.png' %}" style="width:250px;">
+            <a href="{% url 'market:index' %}"><img src="{% static 'market/サイトロゴ.png' %}" style="width:250px;"></a>
         </div>  
         <div class="col-6 ms-auto btn-secondary " style="width: 180px;">
             {% if request.user.is_authenticated %}

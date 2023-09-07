@@ -1,6 +1,7 @@
 {% extends "market/base.html" %}
 
 {% block main %}
+
 <div>{{ product.name }}:{{ product.price }}円</div>
 
 <h2>入札者一覧</h2>
@@ -16,6 +17,20 @@
     <input type="number" name="price">
     <input type="submit" value="入札">
 </form>
+
+<h2>質問フォーム</h2>
+
+<form action="{% url 'market:message' product.id}" method="post">
+    {% csrf_token %}
+    <input type="text" name="content">
+    <input type="submit" value="送信">
+</form>
+
+{% for message in messages %}
+<div>{{ message.dt }}: {{ message.content }}: {{ message.user }}</div>
+{% endfor %}
+
+
 
 {% endblock %}
 
