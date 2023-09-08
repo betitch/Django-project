@@ -1,15 +1,55 @@
 {% extends "market/base.html" %}
+{% load static %}
+
 
 {% block main %}
+<div class="container">
+    <div class="row">              <!-- もうちょっとカッコよくしたい。 -->
+        <div class="col-3 h5">カテゴリ：{{ product.category }}</div>
+        <div class="col-3 h5">商品名：{{ product.name }}</div>
+        <div class="col-3 h5">出品者：{{ product.user }}</div>
+    </div>
+    <div class="row">              
+        <div class="col-6 ">
+            {% with random_image=image_numbers|random|stringformat:"s" %}
+            <img src="{% static 'market/'|add:random_image|add:'.jpg' %}" class="img-fluid" alt="">
+            {% endwith %}
+        </div>
+        <div class="col-5 ">
+            <p>説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明</p>
+        </div>
+    </div>
+    
+    <h5>入札状況</h5>
+    <table class="table tabele-striped table-hover tabele-bordered">
+        <thead>
+            <tr>
+                <th>出品価格</th>
+                <th>最高入札価格</th>
+                <th>入札者</th>
+            </tr>
+        </thead>
+        {% for cart in carts %}           <!-- max を取ってくるには？ -->
+        <tr>
+            <td>{{ product.price }}円</td>
+            <td>{{ cart.price }}円</td>
+            <td>{{ cart.user }}</td>
+        </tr>
+        {% endfor %}
 
-<div>{{ product.name }}:{{ product.price }}円</div>
+    </table>
 
-<h2>入札者一覧</h2>
+</div>
+
+
+<div>:{{ product.price }}円</div>
+
+<h3>入札者一覧</h3>
 {% for cart in carts %}
 <div>{{ cart.user }} : {{ cart.price }}円</div>
 {% endfor %}
 
-<h2>入札フォーム</h2>
+<h3>入札フォーム</h3>
 
 {# フォームの送信先はSingleViewのpostメソッド #}
 <form action="" method="post">
@@ -18,7 +58,7 @@
     <input type="submit" value="入札">
 </form>
 
-<h2>質問フォーム</h2>
+<h3>質問フォーム</h3>
 
 <form action="{% url 'market:message' product.id}" method="post">
     {% csrf_token %}

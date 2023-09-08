@@ -6,6 +6,7 @@
 
 
 {% block main %}   
+<a href="{% url 'market:mylist' user.id %}">マイリストページへ</a><br>
 
 {% for category in categories %}
 {{ category.name }}<br>

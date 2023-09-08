@@ -1,0 +1,38 @@
+{% extends "market/base.html" %}
+{% load static %} 
+{% load custom_filters %}         <!-- カスタムテンプレートタグの読み込み(custom_filters.py) -->
+                                  <!-- 使い方：　{{ product.category|get_type }}
+                                                {{ category.name|get_type }}  で型を確認  -->
+
+
+{% block main %}   
+
+<h5>出品商品一覧</h5>
+    <div class="d-flex ms-3" style="overflow-x:auto;">
+        {% for product in products %}    
+            <div class="ms-2" style="min-width: 200px;">
+                {% with random_image=image_numbers|random|stringformat:"s" %}
+                <img src="{% static 'market/'|add:random_image|add:'.jpg' %}" width="200" height="200" alt="">
+                {% endwith %}
+                <p>{{ product.name }}: {{ product.price }}円</p>
+                 <a href="{% url 'market:single' product.id %}">個別ページ</a>  
+            </div>
+        {% endfor %}
+    </div>
+
+<h5>入札商品一覧</h5>
+    <div class="d-flex ms-3" style="overflow-x:auto;">
+        {% for cart in carts %}    
+            <div class="ms-2" style="min-width: 200px;">
+                {% with random_image=image_numbers|random|stringformat:"s" %}
+                <img src="{% static 'market/'|add:random_image|add:'.jpg' %}" width="200" height="200" alt="">
+                {% endwith %}
+                <p>{{ cart.product }}: {{ cart.price }}円</p>
+                <a href="{% url 'market:single' cart.product.id %}">個別ページ</a>  {# product.id に繋げないといけない #}
+            </div>                                                          
+        {% endfor %}
+    </div>   
+
+
+{% endblock %}
+

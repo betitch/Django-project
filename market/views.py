@@ -14,30 +14,41 @@ class IndexView(View):
         # ↓と↑は同じ
         # products = Product.objects.all()
         # context = { "products": products }
-        context["image_numbers"] = list(range(1, 11))
+        context["image_numbers"] = list(range(1, 10))    # 仮の画像
 
-        return render(request, "market/index.html", context)
+        return render(request, "market/index.html", context)     # 第一引数になぜ、request いるんだっけ？
     
 index = IndexView.as_view()
 
+
+class MyListView(View):
+    def get(self, request, *args, **kwargs):
+        products = Product.objects.filter(user=request.user)
+        carts = Cart.objects.filter(user=request.user)
+        context = {"products":products, "carts":carts}
+        context["image_numbers"] = list(range(1, 10))    # 仮の画像
+        return render(request, "market/mylist.html", context)
+    
+mylist = MyListView.as_view()
+    
+
 class SingleView(View):
     def get(self, request, pk, *args, **kwargs):
-
-        product = Product.objects.filter(id=pk).first()
+        product = Product.objects.filter(id=pk).first()       # .first() いる？　pk に一致するのは一つだけでは？
 
         # この商品に入札しているCartのデータを取り出す。
         carts = Cart.objects.filter(product=pk).order_by("-price")     #　降順に並べるため
         messages = Message.objects.filter(product=pk).order_by("-dt")
         context = {"product":product, "carts":carts, "messages":messages}
+        context["image_numbers"] = list(range(1, 10))    # 仮の画像
 
         return render(request, "market/single.html", context)
     
     def post(self, request, pk, *args, **kwargs):
         
         # price しか含まれていないので、
-        copied = request.POST.copy()            # QueryDict 型らしい
-        print(type(copied))                        # チェック用
-        copied["user"]      = request.user
+        copied = request.POST.copy()            # QueryDict 型らしい                       
+        copied["user"]      = request.user    # ログイン中の user_name が入ってくる。  
         copied["product"]   = pk
 
         form = CartForm(copied)
@@ -48,9 +59,11 @@ class SingleView(View):
             print(form.errors)
 
         return redirect("market:single", pk)     # urls の app_name と　name を組み合わせている。
+                                                 # post の場合は何で redirect でないとダメなんだっけ？
 
     
 single = SingleView.as_view()
+
 
 # メッセージの保存を受け付けるビューを作る
 class MessageView(View):
