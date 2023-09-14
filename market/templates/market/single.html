@@ -2,9 +2,13 @@
 {% load static %}
 
 
+{# コメントは Django のテンプレートで書くのが無難か ？ 
+HTML のコメント <!--  --> が、Django のブロック内に入るとエラーが出る。
+<!--  --> のコメントだと、検証ツールで表示されてしまう。 #}
+
 {% block main %}
-<div class="container">
-    <div class="row">              <!-- もうちょっとカッコよくしたい。 -->
+<div class="container">          
+    <div class="row">              {# もうちょっとカッコよくしたい。 #}    
         <div class="col-3 h5">カテゴリ：{{ product.category }}</div>
         <div class="col-3 h5">商品名：{{ product.name }}</div>
         <div class="col-3 h5">出品者：{{ product.user }}</div>
@@ -17,6 +21,38 @@
         </div>
         <div class="col-5 ">
             <p>説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明</p>
+   
+            {# ProductBidStatusView へ postメソッドで送信 #}
+            {# action未指定の場合は、このページを表示しているViewへ行き着く。この場合はSingleView。HTMLのformタグ、action属性の仕様による #}
+            <form action="{% url 'market:product_bid_status' product.id %}" method="post">   
+                {% csrf_token %}                                {# .id は model 作成時点で default で付与されるフィールドらしい #}
+                                                           
+                <input type="submit" value="入札可否変更">
+            </form>
+            
+            <div>入札期限： {{ product.deadline }}</div>
+
+            {% if product.deadline < now %}
+            入札期限を過ぎています。
+            {% else %}
+            入札可能です。
+            {% endif %}
+            <hr>         {# ← 水平線を書くHTML #}
+            入札状態：
+            {% if product.is_bid %}
+            入札できます。
+            {% else %}
+            入札できません。
+            {% endif %}
+            <br>
+            {# 入札期限も考慮して、入札可否を判定する。 #}
+            入札可否状態：
+            {% if product.is_bid and product.deadline > now %}    {# 入札期限が入ってないと 入札できなくなってるかな？ #}
+            入札できます。
+            {% else %}
+            入札できません。
+            {% endif %}
+   
         </div>
     </div>
     
@@ -29,7 +65,7 @@
                 <th>入札者</th>
             </tr>
         </thead>
-        {% for cart in carts %}           <!-- max を取ってくるには？ -->
+        {% for cart in carts %}          
         <tr>
             <td>{{ product.price }}円</td>
             <td>{{ cart.price }}円</td>
@@ -37,12 +73,17 @@
         </tr>
         {% endfor %}
 
+        {# 最高値で入札した人のuser とリクエストを送ったuserが一致する場合、落札リンクを表示。#}
+        {% if highest.user == request.user %}
+        <div>落札おめでとうございます。購入処理を行なって下さい。</div>
+        <a href="">リンク</a>
+        {% endif %}
+
     </table>
 
 </div>
 
 
-<div>:{{ product.price }}円</div>
 
 <h3>入札者一覧</h3>
 {% for cart in carts %}
@@ -52,11 +93,15 @@
 <h3>入札フォーム</h3>
 
 {# フォームの送信先はSingleViewのpostメソッド #}
+{% if product.is_bid %}
 <form action="" method="post">
     {% csrf_token %}
     <input type="number" name="price">
     <input type="submit" value="入札">
 </form>
+{% else %}
+<div>現在この商品の入札はできません。</div>
+{% endif %}
 
 <h3>質問フォーム</h3>
 

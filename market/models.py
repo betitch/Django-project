@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User     # Django のデフォルトの User クラスがある 
 
-# Create your models here.
+
 class Category(models.Model):
     name = models.CharField(verbose_name="カテゴリ名",max_length=20)
 
@@ -18,7 +18,19 @@ class Product(models.Model):
     price = models.IntegerField(verbose_name='希望売却価格')
 
     # １対多でユーザーモデルと紐つける。 ユーザーはクラスを作らなくて良い。
-    user = models.ForeignKey(User, verbose_name='出品者', on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, verbose_name='出品者', on_delete=models.SET_NULL, blank=True)
+
+    image = models.ImageField(verbose_name="商品画像", blank=True, default='noImage.png')
+    description = models.CharField(verbose_name="商品説明", max_length=200, blank=True)
+
+    # 入札期限を投稿時に入れる。入札期限を設けない場合にも対応させる。
+    # 現在時刻と比較して、過ぎていれば、入札できないようにする。
+    deadline = models.DateTimeField(verbose_name="入札期限", null=True, blank=True)
+
+    # Trueで入札できる、Falseで入札できない(Falseの状態で落札できるようにする)
+    # これがFalseのとき、最高値で入札したユーザーの落札が決定。
+    is_bid  = models.BooleanField(verbose_name="入札できる", default=True)
+
 
     def __str__(self):            # これがあるから、index.html で product 変数を出力させると
         return self.name          # name が出力されるのか。     ← どうもそうらしい。      

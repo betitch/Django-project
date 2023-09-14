@@ -1,25 +1,27 @@
 {% extends "market/base.html" %}
 {% load static %} 
-{% load custom_filters %}         <!-- カスタムテンプレートタグの読み込み(custom_filters.py) -->
-                                  <!-- 使い方：　{{ product.category|get_type }}
-                                                {{ category.name|get_type }}  で型を確認  -->
+{% load custom_filters %}         {# カスタムテンプレートタグの読み込み(custom_filters.py) 
+                                    使い方：{{ product.category|get_type }}
+                                           {{ category.name|get_type }}  で型を確認  #}
 
 
 {% block main %}   
-<a href="{% url 'market:mylist' user.id %}">マイリストページへ</a><br>
+{# <a href="{% url 'market:mylist' user.id %}">マイリストページへ</a><br> #} {# user.id はいらない？ #}
+<a href="{% url 'market:mylist' %}">マイリストページへ</a><br>
+
 
 {% for category in categories %}
 {{ category.name }}<br>
     <div class="d-flex ms-3" style="overflow-x:auto;">
         <!-- 商品一覧 -->
-        {% for product in products %}    <!-- あ、template タグの中にコメント入れちゃダメなのか -->
-            {% if product.category.name == category.name %}   <!-- 入れるなら {#   #} で -->
+        {% for product in products %}    
+            {% if product.category.name == category.name %}   
             <div class="ms-2" style="min-width: 200px;">
                 {% with random_image=image_numbers|random|stringformat:"s" %}
                 <img src="{% static 'market/'|add:random_image|add:'.jpg' %}" width="200" height="200" alt="">
                 {% endwith %}
                 <p>{{ product.name }}: {{ product.price }}円</p>
-                <a href="{% url 'market:single' product.id %}">個別ページ</a>  <!-- この product.id で pk を取得してるのか？ -->
+                <a href="{% url 'market:single' product.id %}">個別ページ</a>  {# この product.id で pk を取得してるのか？ #}
             </div>
             {% endif %}
         {% endfor %}

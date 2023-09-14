@@ -36,7 +36,7 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 # Application definition
 
 INSTALLED_APPS = [
-    'market.apps.MarketConfig',  # apps.py のクラスを指定
+    'market.apps.MarketConfig',  # apps.py のクラスを指定       何だっけこれ？
 
     'django.contrib.sites',        # ←追加
     'allauth',                     # ←追加
@@ -109,7 +109,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASS_DIR / 'db.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -158,3 +158,7 @@ STATICFILES_DIRS = [ BASE_DIR / "static"]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+MEDIA_URL = "/media/"          # 何か書式が決まっている？
+MEDIA_ROOT = BASE_DIR/"media"
