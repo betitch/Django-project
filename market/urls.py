@@ -10,5 +10,6 @@ urlpatterns = [
     path("product_bid_status/<int:pk>/", views.product_bid_status, name="product_bid_status"),
     path("message/<int:pk>/", views.message, name="message"),    # ページとしては single が表示されて、url は
     path("mypage/", views.mypage, name="mypage"),                # product_bid_status/<int:pk>/ になる ？
-    path("mypost/", views.mypost, name="mypost"),               
+    path("mypost/", views.mypost, name="mypost"),  
+    path("mypost/<int:pk>/", views.mypost, name="mypost_single"),            
 ]

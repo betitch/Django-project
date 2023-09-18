@@ -17,7 +17,6 @@ class IndexView(View):
         # ↓と↑は同じ
         # products = Product.objects.all()
         # context = { "products": products }
-        context["image_numbers"] = list(range(1, 10))    # 仮の画像
 
         return render(request, "market/index.html", context)     # 第一引数になぜ、request いるんだっけ？
     
@@ -25,7 +24,7 @@ index = IndexView.as_view()
 
 
 class SingleView(View):
-    def get(self, request, pk, *args, **kwargs):
+    def get(self, request, pk, *args, **kwargs):              # pk は個別ページリンクの html で提供されている？
         product = Product.objects.filter(id=pk).first()       # .first() いる？　pk に一致するのは一つだけでは？
                                                               # 配列で取ってくるので、１個でも first が必要、 無いと for ループを回す必要がある？
 
@@ -34,11 +33,8 @@ class SingleView(View):
         messages = Message.objects.filter(product=pk).order_by("-dt")
         context = {"product":product, "carts":carts, "messages":messages}     # context = {} 初期化はしなくていいのか？
                                                                               # product の中に image も入っている。
-        context["image_numbers"] = list(range(1, 10))    # 仮の画像
-
         # 現在時刻をコンテキストに入れる。
         context["now"] = timezone.now()
-
         #　最高値のcartだけ取り出す。order_byとfirstで最高値のデータだけ出せる。
         # TODO: deadlineも参考にする。is_bidがFalseもしくは、deadlineがすぎている場合。OR検索になる。
         # OR検索をするためにはクエリビルダが必要。
@@ -65,7 +61,7 @@ class SingleView(View):
 
         return redirect("market:single", pk)     # urls の app_name と　name を組み合わせている。
                                                  # render にしてしまうと、再表示時、もう一度 post されてしまう。  
-single = SingleView.as_view()                    # .html  は描かなくていいんだっけ？
+single = SingleView.as_view()                    # 引数に pk 必要？
 
 
 class MyListView(View):
@@ -73,49 +69,55 @@ class MyListView(View):
         products = Product.objects.filter(user=request.user)
         carts = Cart.objects.filter(user=request.user)
         context = {"products":products, "carts":carts}
-        context["image_numbers"] = list(range(1, 10))    # 仮の画像
         return render(request, "market/mylist.html", context)
     
 mylist = MyListView.as_view()
 
 
 class MyPostView(View):
-    def get(self, request, *args, **kwargs):
-        product_id = request.session.get('last_posted_product_id')
-
-        if product_id:
-            product = Product.objects.filter(id=product_id).first()
+    def get(self, request, *args, **kwargs):   # 初回 Post 後の pk を *kwargs に処理させる
+        
+        if "pk" in kwargs:                     # pk というキー名はどこかでデフォルトで、決められている？
+            exist_pk = True                   
+            product = Product.objects.filter(id=kwargs["pk"]).first() 
         else:
-            default_data = {
-                "category": "カテゴリ"
-                "name": "商品名",
+            exist_pk = False
+            tmp_category = Category(name="カテゴリ")
+            default_data = {                   # 初回 Post 前に存在するデータを入れないと表示されない
+                "category": tmp_category,        
+                "name":"商品名",
                 "price": 0,
-                "image": "noImage.png",       # でいいのかな？
+                "user": request.user,
+                "image": "noImage.png",       # でいいのかな？  
                 "description": "商品説明",
                 "deadline": timezone.now(),    # 関数入れてもいいんか？
+                "is_bid": None,
             }
             product = Product(**default_data)
+        categories = Category.objects.all()
+        context = {"product": product, "categories": categories}
+        context["does_exist"] = exist_pk
 
-        return render(request, "market/mypost.html", {"product":product})
+        return render(request, "market/mypost.html", context)    # render には pk は不要？
 
     # 新規商品の出品
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):   # post も同様に、初回 post 時は pk が無い
         copied = request.POST.copy()
         copied["user"] = request.user
-        form = ProductForm(copied)      # request.FILES 必要？
+        form = ProductForm(copied, request.FILES)      # request.FILES 必要？
 
         if form.is_valid():
-            product = form.save()
-            request.session['last_posted_product_id'] = product.id
+            product = form.save()                      # ここで、初めて、pk が付与される
         else:
             print(form.errors)
 
-        return redirect("market:mypost")
+        return redirect("market:mypost_single", product.pk)   # 引数は product.pk になるのか。
+                                                              # product.id = product.pk らしい pk はエイリアス
 
 mypost = MyPostView.as_view()
 
 
-"""
+""" 編集用 Viwe とするか？ MySingleEditView ?
 class MySingleView(View):                            # 該当商品を一つ取ってくる。 そういえば、最初は商品が無いな。
     def get(self, request, pk, *args, **kwargs):
         product = Product.objects.filter(id=pk).first()  
@@ -166,13 +168,13 @@ class ProductBidStatusView(View):
         
         # 指定した商品がない場合はリダイレクト
         if not product:          # これだけで boolean になる ？
-            return redirect("market:single", pk)    # pk が無いと、single ページが特定できない ？
+            return redirect("market:mypost",pk)    # pk が無いとページが特定できない ？
         
         # ブーリアン値を反転させる
         product.is_bid = not product.is_bid
         product.save()
 
-        return redirect("market:single", pk)
+        return redirect("market:mypost", pk)
 
 product_bid_status = ProductBidStatusView.as_view()
 

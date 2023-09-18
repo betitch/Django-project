@@ -24,4 +24,7 @@ urlpatterns = [
     path("", include("market.urls")),
     path('accounts/', include('allauth.urls')),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)   # この書き方？
+if settings.DEBUG:    # 開発モードでのみ有効ということらしい
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)   # この書き方？
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)   # OK？
+

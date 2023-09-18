@@ -15,19 +15,19 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
     </div>
     <div class="row">              
         <div class="col-6 ">
-            {% with random_image=image_numbers|random|stringformat:"s" %}
-            <img src="{% static 'market/'|add:random_image|add:'.jpg' %}" class="img-fluid" alt="">
-            {% endwith %}
+            <div class="fixed-size-img-container">
+                <img src="{{ product.image.url }}" class="img-fluid" alt="">
+            </div>
         </div>
         <div class="col-5 ">
-            <p>説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明説明</p>
+            <textarea placeholder="{{ product.description }}" style="width:400px; height:300px;"></textarea>     {# 四角で囲みたい #}
    
             {# ProductBidStatusView へ postメソッドで送信 #}
             {# action未指定の場合は、このページを表示しているViewへ行き着く。この場合はSingleView。HTMLのformタグ、action属性の仕様による #}
             <form action="{% url 'market:product_bid_status' product.id %}" method="post">   
                 {% csrf_token %}                                {# .id は model 作成時点で default で付与されるフィールドらしい #}
                                                            
-                <input type="submit" value="入札可否変更">
+                <input type="submit" value="入札可否変更">    {# View 側で Post されると、ブーリアンを反転させる仕様になっている #}
             </form>
             
             <div>入札期限： {{ product.deadline }}</div>

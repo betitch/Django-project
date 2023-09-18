@@ -1,0 +1,90 @@
+{% extends "market/base.html" %}
+
+{# Django のコードは、コメントで挟んでも解釈されてしまうことがあるみたい HTML式のコメントもしない方がいいみたい #}
+
+{% block main %}
+<div class="container"> 
+    <div class="row">              {# もうちょっとカッコよくしたい。 #}    
+        <div class="col-3 h5">カテゴリ：{{ product.category }}</div>
+        <div class="col-3 h5">商品名：{{ product.name }}</div>
+        <div class="col-3 h5">出品者：{{ product.user }}</div>
+    </div>
+    <div class="row">              
+        <div class="col-6 ">
+            <div class="fixed-size-img-container">
+                <img src="{{ product.image.url }}" class="img-fluid" alt="">
+            </div>
+        </div>
+        <div class="col-5 ">
+            <textarea placeholder="{{ product.description }}" style="width:400px; height:300px;"></textarea>     {# 四角で囲みたい #}
+        </div>
+        <div>
+            {% if does_exist %}
+            <form action="{% url 'market:product_bid_status' product.id %}" method="post">
+                {% csrf_token %}  
+                                                      
+                <input type="submit" value="入札可否変更">
+            </form>  
+            {% endif %}   
+
+            <div>入札期限： {{ product.deadline }}</div>
+
+            {% if product.deadline < now %}
+            入札期限を過ぎています。
+            {% else %}
+            入札可能です。
+            {% endif %}
+            <hr>         {# ← 水平線を書くHTML #}
+            入札状態：
+            {% if product.is_bid %}
+            入札できます。
+            {% else %}
+            入札できません。
+            {% endif %}
+            <br>
+            {# 入札期限も考慮して、入札可否を判定する。 #}
+            入札可否状態：
+            {% if product.is_bid and product.deadline > now %}    {# 入札期限が入ってないと 入札できなくなってるかな？ #}
+            入札できます。
+            {% else %}
+            入札できません。
+            {% endif %}
+        </div>    
+    </div>      
+    <div>
+        <h3>出品はこちらから</h3>     {# 編集画面もつけたい あと、削除ボタンもつけないといかん #}
+        <form method="post" enctype="multipart/form-data" action="{% url 'market:mypost' %}">
+            {% csrf_token %}
+    
+            <label for="category">カテゴリ</label>
+            <select name="category" id="category">
+                {% for category in categories %}    {#  初回 post 時は category に temporary な値をセットしているため、selected にならないはず #}
+                <option value="{{ category.id }}" {% if product.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select><br><br>
+    
+            <label for="name">商品名：</label>
+            <input type="text" id="name" name="name" value="{{ product.name }}"><br><br>         {# 初期値はセットしておかなくていいか #}
+    
+            <label for="image">商品画像：</label>             {#  投稿のたびに、画像を選択しないと、noImage になっちゃうぞ？ #}
+            <input type="file" id="image" name="image"><br><br>
+
+            <label for="description">商品説明</label>
+            <textarea id="description" name="description" placeholder="{{ product.description }}"></textarea><br><br> 
+
+            <label for="price">希望売却価格</label>
+            <input type="number" id="priice" name="price"><br><br>
+
+            <label for="deadline">出品期限</label>
+            <input type="date" id="deadline" name="deadline"><br><br>
+
+
+    
+            <input type="submit" value="投稿する">
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}
+

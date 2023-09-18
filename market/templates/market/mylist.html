@@ -11,22 +11,19 @@
     <div class="d-flex ms-3" style="overflow-x:auto;">
         {% for product in products %}    
             <div class="ms-2" style="min-width: 200px;">
-                {% with random_image=image_numbers|random|stringformat:"s" %}
-                <img src="{% static 'market/'|add:random_image|add:'.jpg' %}" width="200" height="200" alt="">
-                {% endwith %}
+                <img src="{{ product.image.url }}" width="200" height="200" alt="">
                 <p>{{ product.name }}: {{ product.price }}円</p>
                  <a href="{% url 'market:single' product.id %}">個別ページ</a>  
             </div>
         {% endfor %}
     </div>
+<a href="{% url 'market:mypost' %}">新規出品する</a>
 
 <h5>入札商品一覧</h5>
     <div class="d-flex ms-3" style="overflow-x:auto;">
         {% for cart in carts %}    
             <div class="ms-2" style="min-width: 200px;">
-                {% with random_image=image_numbers|random|stringformat:"s" %}
-                <img src="{% static 'market/'|add:random_image|add:'.jpg' %}" width="200" height="200" alt="">
-                {% endwith %}
+                <img src="{{ cart.product.image.url }}" width="200" height="200" alt="">
                 <p>{{ cart.product }}: {{ cart.price }}円</p>
                 <a href="{% url 'market:single' cart.product.id %}">個別ページ</a>  {# product.id に繋げないといけない #}
             </div>                                                          
