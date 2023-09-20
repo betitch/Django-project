@@ -34,7 +34,13 @@ class Product(models.Model):
 
     def __str__(self):            # これがあるから、index.html で product 変数を出力させると
         return self.name          # name が出力されるのか。     ← どうもそうらしい。      
-          
+
+
+    # TODO:このProductに紐付いているCartを取り出したい場合、モデルメソッドを作って、テンプレートで呼び出す。   
+    def carts(self):
+        return Cart.objects.filter(product=self.id)
+    
+    
 class Cart(models.Model):
     product = models.ForeignKey(Product, verbose_name="商品", on_delete=models.CASCADE)  # 外部キー
     price = models.IntegerField(verbose_name='希望購入価格')

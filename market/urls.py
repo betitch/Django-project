@@ -11,5 +11,7 @@ urlpatterns = [
     path("message/<int:pk>/", views.message, name="message"),    # ページとしては single が表示されて、url は
     path("mypage/", views.mypage, name="mypage"),                # product_bid_status/<int:pk>/ になる ？
     path("mypost/", views.mypost, name="mypost"),  
-    path("mypost/<int:pk>/", views.mypost, name="mypost_single"),            
+    #path("mypost/<int:pk>/", views.mypost, name="mypost_single"),    
+    path("session_create/<int:pk>/", views.session_create, name="session_create"),
+    path("checkout/", views.checkout, name="checkout"),
 ]

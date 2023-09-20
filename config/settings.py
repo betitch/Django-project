@@ -162,3 +162,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = "/media/"          # 何か書式が決まっている？
 MEDIA_ROOT = BASE_DIR/"media"
+
+# 環境変数に格納したAPIキーを呼び出す     local_settings.py の方に書くんだっけ？
+import os                         # こんな場所で import するの？
+
+if "STRIPE_PUBLISHABLE_KEY" in os.environ and "STRIPE_API_KEY" in os.environ:
+    STRIPE_PUBLISHABLE_KEY = os.environ["STRIPE_PUBLISHABLE_KEY"]
+    STRIPE_API_KEY         = os.environ["STRIPE_API_KEY"]
+ 
+    

@@ -18,38 +18,6 @@
         <div class="col-5 ">
             <textarea placeholder="{{ product.description }}" style="width:400px; height:300px;"></textarea>     {# 四角で囲みたい #}
         </div>
-        <div>
-            {% if does_exist %}
-            <form action="{% url 'market:product_bid_status' product.id %}" method="post">
-                {% csrf_token %}  
-                                                      
-                <input type="submit" value="入札可否変更">
-            </form>  
-            {% endif %}   
-
-            <div>入札期限： {{ product.deadline }}</div>
-
-            {% if product.deadline < now %}
-            入札期限を過ぎています。
-            {% else %}
-            入札可能です。
-            {% endif %}
-            <hr>         {# ← 水平線を書くHTML #}
-            入札状態：
-            {% if product.is_bid %}
-            入札できます。
-            {% else %}
-            入札できません。
-            {% endif %}
-            <br>
-            {# 入札期限も考慮して、入札可否を判定する。 #}
-            入札可否状態：
-            {% if product.is_bid and product.deadline > now %}    {# 入札期限が入ってないと 入札できなくなってるかな？ #}
-            入札できます。
-            {% else %}
-            入札できません。
-            {% endif %}
-        </div>    
     </div>      
     <div>
         <h3>出品はこちらから</h3>     {# 編集画面もつけたい あと、削除ボタンもつけないといかん #}

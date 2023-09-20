@@ -1,0 +1,38 @@
+{% extends "market/base.html" %}
+{% load static %}
+
+{% block main %}
+
+
+{{ cart.product.name }} の決済
+
+<div>{{ cart.price }}</div>
+
+{# この辺りの書き方も決まっている？ getElementById 用の id か #}
+<button id="checkout-button" type="button">決済</button>   
+
+{# Stripeクラスを使うため、CDNをインストールしておく。  コンテンツ デリバリー ネットワーク？ #}
+{# Stripe の javascript ライブラリ？ #}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+
+    //ここにStripeの公開鍵をセットする。public_key は何処で定義した？
+    var stripe = Stripe("{{ public_key }}");
+
+    //決済ボタン押したときのイベント(Stripeへ決済処理する)をセットする。
+    var checkoutButton = document.getElementById("checkout-button");
+
+    checkoutButton.addEventListener('click', function() {
+        stripe.redirectToCheckout({
+            sessionId: '{{ session_id }}'
+        }).then(function (result) {
+            //失敗したときの処理 
+        });
+    });
+    
+    console.log("{{ session_id }}");
+
+</script>
+
+
+{% endblock %}
