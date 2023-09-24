@@ -20,7 +20,7 @@
         </div>
     </div>      
     <div>
-        <h3>出品はこちらから</h3>     {# 編集画面もつけたい あと、削除ボタンもつけないといかん #}
+        <h3>出品はこちらから</h3>     
         <form method="post" enctype="multipart/form-data" action="{% url 'market:mypost' %}">
             {% csrf_token %}
     
@@ -32,7 +32,7 @@
             </select><br><br>
     
             <label for="name">商品名：</label>
-            <input type="text" id="name" name="name" value="{{ product.name }}"><br><br>         {# 初期値はセットしておかなくていいか #}
+            <input type="text" id="name" name="name" value="{{ product.name }}"><br><br>      {# 初期値はセットしておかなくていいか #}
     
             <label for="image">商品画像：</label>             {#  投稿のたびに、画像を選択しないと、noImage になっちゃうぞ？ #}
             <input type="file" id="image" name="image"><br><br>
@@ -45,10 +45,8 @@
 
             <label for="deadline">出品期限</label>
             <input type="date" id="deadline" name="deadline"><br><br>
-
-
-    
-            <input type="submit" value="投稿する">
+   
+            <input type="submit" value="出品する">
         </form>
     </div>
 </div>

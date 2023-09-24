@@ -39,11 +39,60 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
                 {% csrf_token %}                                {# .id は model 作成時点で default で付与される → プライマリキー #}                                           
                 <input type="submit" value="入札可否変更">    {# Post されると、View 側でブーリアンを反転させる仕様になっている #}
             </form>
+
+            <style>
+                .edit_chk {
+                    display: none;
+                }
+                .edit_area {
+                    display: none;
+                }
+                /* edit_chk が check されたら、edit_area を表示する */
+                .edit_chk:checked ~ .edit_area {    
+                    display: block;
+                }
+            </style>
+            <input id="edit_chk" class="edit_chk" type="checkbox">     {# この checkbox を介する必要ある？ #}
+            <label class="btn btn-success" for="edit_chk">入力内容を編集</label> 
+
+            <form class="edit_area" enctype="multipart/form-data" action="{% url 'market:myedit' product.id %}" method="post">   {# url の逆引き #} 
+                {% csrf_token %}
+                <label for="category">カテゴリ</label>
+                <select name="category" id="category">
+                    {% for category in categories %}  
+                    <option value="{{ category.id }}" {% if product.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select><br><br>
+        
+                {# 入力必須項目等を表示するには？ #}
+                <label for="name">商品名：</label>
+                <input type="text" id="name" name="name" value="{{ product.name}}"><br><br>
+        
+                <label for="image">商品画像：</label>            
+                <input type="file" id="image" name="image"><br><br>
+
+                <label for="description">商品説明</label>
+                <textarea id="description" name="description">{{ product.description }}</textarea><br><br> 
+
+                <label for="price">希望売却価格</label>
+                <input type="number" id="priice" name="price" value="{{ product.price}}"><br><br>
+
+                <label for="deadline">出品期限</label>
+                <input type="date" id="deadline" name="deadline" value="{{ product.deadline}}"><br><br>
+    
+                <input type="submit" value="変更する">
+            </form>
+
+            <form action="{% url 'market:mydelete' product.id %}" method="post" style="display: inline-block;" onsubmit="if(confirm('本当に削除しますか？')){ return true } else { return false};"> 
+                {% csrf_token %}
+                <input class="btn btn-danger" type="submit" value="出品を取り消す">
+            </form>
+
             {% endif %}
         </div>
     </div>
     
-    <h5>入札状況</h5>
+    <h5>入札状況（上位３者）</h5>
     <table class="table tabele-striped table-hover tabele-bordered">
         <thead>
             <tr>
@@ -52,7 +101,7 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
                 <th>入札者</th>
             </tr>
         </thead>
-        {% for cart in carts %}          
+        {% for cart in top_three_bidders %}          
         <tr>
             <td>{{ product.price }}円</td>
             <td>{{ cart.price }}円</td>
@@ -81,33 +130,34 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
 
 </div>
 
+{% if product.user != request.user %}
+    <h3>入札フォーム</h3>
 
-<h3>入札フォーム</h3>
-
-{# フォームの送信先はSingleViewのpostメソッド #}
-{# 期限内であり、is_bidがTrueである #}
-{% if product.is_bid and product.deadline > now %}
-<form action="" method="post">
-    {% csrf_token %}
-    <input type="number" name="price">
-    <input type="submit" value="入札">
-</form>
-{% else %}
-<div>現在この商品の入札はできません。</div>
+    {# フォームの送信先はSingleViewのpostメソッド #}
+    {# 期限内であり、is_bidがTrueである #}
+    {% if product.is_bid and product.deadline > now %}
+        <form action="" method="post">
+        {% csrf_token %}
+        <input type="number" name="price">
+        <input type="submit" value="入札">
+        </form>
+    {% else %}
+        <div>現在この商品の入札はできません。</div>
+    {% endif %}
+    
+    <h3>質問フォーム</h3>
+    
+    <form action="{% url 'market:message' product.id}" method="post">
+        {% csrf_token %}
+        <input type="text" name="content">
+        <input type="submit" value="送信">
+    </form>
+    
+    {% for message in messages %}
+    <div>{{ message.dt }}: {{ message.content }}: {{ message.user }}</div>
+    {% endfor %}
+    
 {% endif %}
-
-<h3>質問フォーム</h3>
-
-<form action="{% url 'market:message' product.id}" method="post">
-    {% csrf_token %}
-    <input type="text" name="content">
-    <input type="submit" value="送信">
-</form>
-
-{% for message in messages %}
-<div>{{ message.dt }}: {{ message.content }}: {{ message.user }}</div>
-{% endfor %}
-
 
 
 {% endblock %}

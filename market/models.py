@@ -13,19 +13,19 @@ class Category(models.Model):
 class Product(models.Model):
     # Category モデルの id （プライマリーキー？）を記録する
     # on_delete は紐付く Category が消された時の挙動 mocels.CASCADE カテゴリが消された時 Producut も消される。
-    category = models.ForeignKey(Category,verbose_name="カテゴリ",on_delete=models.CASCADE, null=True, blank=True)  # 都合上 mull,blank=True にしたが、よくないはず
-    name = models.CharField(verbose_name="商品名", max_length=20, blank=True)  # verbose_name は管理サイト表示用 都合上 blank=True にしたが、よくないはず
-    price = models.IntegerField(verbose_name='希望売却価格', null=True, blank=True)      # 都合上 null,blank=True にしたが、よくないはず
+    category = models.ForeignKey(Category,verbose_name="カテゴリ",on_delete=models.CASCADE, blank=True)  # blank=True にするものは通常？
+    name = models.CharField(verbose_name="商品名", max_length=20, blank=True)  # verbose_name は管理サイト表示用
+    price = models.IntegerField(verbose_name='希望売却価格', blank=True)   
 
     # １対多でユーザーモデルと紐つける。 ユーザーはクラスを作らなくて良い。
     user = models.ForeignKey(User, verbose_name='出品者', on_delete=models.SET_NULL, null=True, blank=True)  # 最初 on_delete=models.SET_NULL　になっていたが何故？
-                                                                                                            # マイグレート時エラーが出たため、null=True をプラスしたがOK？
+                                                                                                
     image = models.ImageField(verbose_name="商品画像", blank=True, default='noImage.png')
     description = models.CharField(verbose_name="商品説明", max_length=200, blank=True)
 
     # 入札期限を投稿時に入れる。入札期限を設けない場合にも対応させる。
     # 現在時刻と比較して、過ぎていれば、入札できないようにする。
-    deadline = models.DateTimeField(verbose_name="入札期限", null=True, blank=True)
+    deadline = models.DateTimeField(verbose_name="入札期限", blank=True)
 
     # Trueで入札できる、Falseで入札できない(Falseの状態で落札できるようにする)
     # これがFalseのとき、最高値で入札したユーザーの落札が決定。

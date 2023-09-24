@@ -6,6 +6,8 @@ from django.utils import timezone
 import magic
 from django.db.models import Q    # Query ビルダを使うため、import
 
+from django.forms.models import model_to_dict    # MyEditView で使用
+
 # ALLOWED_MIME = ["application/pdf"]
 
 
@@ -41,7 +43,9 @@ class SingleView(View):
         context['highest'] = Cart.objects.filter(product=pk, product__is_bid=False).order_by("-price").first()
                                                                    # ↑アンスコ２つは、外部キー属性にアクセスするショートカット
         """
-                                                                                        # less than equal
+        context["top_three_bidders"] = Cart.objects.filter(product=pk).order_by("-price")[:3]
+
+                                                                                       # less than equal
         query = Q(product=pk, product__is_bid=False) | Q(product=pk, product__deadline__lte=timezone.now())
         context["highest"] = Cart.objects.filter(query).order_by("-price").first()
 
@@ -99,7 +103,7 @@ class MyPostView(View):
     def get(self, request, *args, **kwargs):
         context = {}               # 初期化する時としない時があるのは何故？
         context["categories"] = Category.objects.all()   # get した時、category が不足してるんだっけ？
-
+                                                         # 当初 get 時には category しか context が無い？ 
         return render(request, 'market/mypost.html', context)
     
     def post(self, request, *args, **kwargs):
@@ -164,44 +168,51 @@ class MyPostView(View):
 mypost = MyPostView.as_view()
 
 
-""" 編集用 Viwe とするか？ MySingleEditView ?
-class MySingleView(View):                            # 該当商品を一つ取ってくる。 そういえば、最初は商品が無いな。
+class MyEditView(View):                           
+    """ Edit は get いらないんだっけ？
     def get(self, request, pk, *args, **kwargs):
         product = Product.objects.filter(id=pk).first()  
-        carts = Cart.objects.filter(product=pk).order_by("-price") 
-        messages = Message.objects.filter(product=pk).order_by("-dt")
-        context = {"product":product, "carts":carts, "messages":messages}  # product の中に image も入っている。
-        # 現在時刻をコンテキストに入れる。
-        context["now"] = timezone.now()
+        context = {"product":product} 
+        context["categories"] = Category.objects.all()    # context の書き方どちらがいい？
 
-        # 最高値のcartだけ取り出す。order_byとfirstで最高値のデータだけ出せる。
-        # TODO: deadlineも参考にする。is_bidがFalseもしくは、deadlineがすぎている場合。OR検索になる。
-        # OR検索をするためにはクエリビルダが必要。
-        context['highest'] = Cart.objects.filter(product=pk, product__is_bid=False).order_by("-price").first()
-                                                                   # ↑アンスコ２つは、外部キー属性にアクセスするショートカット
-        return render(request, "market/mysingle.html", context)
+        return render(request, "market/single.html", context)
+    """
 
     # 出品商品の属性編集    なんか instance の指定が必要になるらしい。
     def post(self, request, pk, *args, **kwargs):
+        product = Product.objects.filter(id=pk).first()   # 編集対象の product を指定
         
-        # price しか含まれていないので、
-        copied = request.POST.copy()            # QueryDict 型らしい                      
-        copied["user"]      = request.user    # ログイン中の user_name が入ってくる。  
+        # 未入力のフィールドに対して現在のデータを使用する
+        initial_data = model_to_dict(product)   # 既存のproductのデータをdict形式で取得
+        post_data = request.POST.copy()         # POSTデータをmutableなdictとして取得
+        for key, value in initial_data.items():
+            if not post_data.get(key):          # このフィールドが未入力の場合
+                post_data[key] = value          # 既存のデータを使用
 
-        # 指定した商品は入札できるかどうかをチェックした上で、入札処理をする。
-        copied["product"]   = Product.objects.filter(id=pk, is_bid=True).first()
-
-        form = ProductForm(copied)
+        form = ProductForm(post_data, request.FILES, instance=product)  # これだけで Edit になる？
 
         if form.is_valid():
             form.save()
         else:
             print(form.errors)
 
-        return redirect("market:mysingle", pk)     # urls の app_name と name を組み合わせている。
+        return redirect("market:single", pk) 
                                                      
-single = MySingleView.as_view()
-"""
+myedit = MyEditView.as_view()
+
+
+class MyDeleteView(View):
+    def post(self, request, pk, *args, **kwargs):
+        product = Product.objects.filter(id=pk).first()
+        product.delete()
+
+        return redirect("market:mylist")
+
+mydelete = MyDeleteView.as_view()
+
+
+
+
 
 
 # 出品した商品を入札できない状態にする。
