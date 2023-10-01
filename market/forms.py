@@ -1,5 +1,5 @@
-from django import forms                         # データベースへの保存に関してバリデーションを行う
-from .models import Product, Cart, Message
+from django import forms        # データベースへの保存に関してバリデーションを行う
+from .models import Product, Cart, Message, Order
 from django.contrib.auth.models import User 
 
 
@@ -35,3 +35,10 @@ class MessageForm(forms.ModelForm):
     class Meta:
         model = Message
         fields = ["product", "content", "user"]
+
+# ProductとUserとsession_idを記録する。
+class OrderForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ["product", "user", "session_id"]
+        

@@ -1,0 +1,12 @@
+{% extends "market/base.html" %}
+{% load static %}
+{% load custom_ filters %}
+
+{% block main %}
+
+<h2>落札おめでとうござます。</h2>
+<p>以下の商品は正常に落札されました。</p>
+<div>{{ order.product }}</div>
+<div>決済時刻： {{ order.payment_dt }}</div>
+
+{% endblock %}

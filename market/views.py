@@ -1,18 +1,31 @@
 from django.shortcuts import render, redirect     
 from django.views import View
-from .models import Product, Category, Cart, Message
-from .forms import ProductForm,CartForm, UserForm, MessageForm
+from .models import Product, Category, Cart, Message, Order
+from .forms import ProductForm,CartForm, UserForm, MessageForm, OrderForm
 from django.utils import timezone
-import magic
+# import magic  # ← ファイルの種類を判定するライブラリ。（今回は使用しない）
 from django.db.models import Q    # Query ビルダを使うため、import
 
 from django.forms.models import model_to_dict    # MyEditView で使用
 
 # ALLOWED_MIME = ["application/pdf"]
 
+# メール送信用
+from django.core.mail import send_mail
+
 
 class IndexView(View):
     def get(self, request, *args, **kwargs):
+        """
+        # ここで決済完了した旨をメールで知らせる。
+        # settings.pyに指定した、EMAIL_BACKENDを使っている。  ？
+        email = request.user.email
+        subject = "購入完了"
+        message = "落札おめでとうございます。"
+        from_email = "huga@gmail.com"   # huga@gmail.com ？
+        recipient_list = [ email ]
+        send_mail(subject, message, from_email, recipient_list)
+        """
 
         context = {}
         context["categories"] = Category.objects.all()
@@ -27,9 +40,9 @@ index = IndexView.as_view()
 
 
 class SingleView(View):
-    def get(self, request, pk, *args, **kwargs):              # pk は個別ページリンクの html で提供されている？
-        product = Product.objects.filter(id=pk).first()       # .first() いる？　pk に一致するのは一つだけでは？
-                                                              # 配列で取ってくるので、１個でも first が必要、 無いと for ループを回す必要がある？
+    def get(self, request, pk, *args, **kwargs):              # pk は個別ページリンクの html で提供されている
+        product = Product.objects.filter(id=pk).first()       # 配列で取ってくるので、１個でも first が必要、 無いと for ループを回す必要がある
+                                                              
 
         # この商品に入札しているCartのデータを取り出す。
         carts = Cart.objects.filter(product=pk).order_by("-price")     #　降順に並べるため
@@ -312,23 +325,49 @@ class SessionCreateView(View):
 
         context['cart'] = cart
 
-        # 決済したい商品データをStripeセッション作成時に与える。 ？
-        session = stripe.checkout.Session.create(
-            payment_method_types = ['card'],
-            line_items = items,
-            mode = 'payment',
-            #決済成功した後のリダイレクト先。セッションidを使って、決済したかDjango側でチェックする。
-            success_url = request.build_absolute_uri(reverse_lazy("market:checkout")) + "?session_id={CHECKOUT_SESSION_ID}",
-                                                # uri ？                               # ?session_id クエリストリング
-            #決済キャンセルしたときのリダイレクト先
-            cancel_url = request.build_absolute_uri(reverse_lazy("market:index")),
-        )
+        order = Order.objects.filter(product=cart.product).first()
+
+        if order:
+            # TODO: このorderは決済済みかも調べる。
+            """
+            if order.payment_dt:
+                redirect()
+            """
+            # 2回目以降のアクセス。すでにあるOrderからセッションページを表示。
+            #TODO:すでにセッションは作ったので、セッションページを作る
+            context["session_id"] = order.session_id
+            print("２回目以降のアクセス")
+        else:
+            # 1回目のアクセス。セッションを作って、Orderを作る。
+
+            # 決済したい商品データをStripeセッション作成時に与える。 ？
+            session = stripe.checkout.Session.create(
+                payment_method_types = ['card'],
+                line_items = items,
+                mode = 'payment',
+                #決済成功した後のリダイレクト先。セッションidを使って、決済したかDjango側でチェックする。
+                success_url = request.build_absolute_uri(reverse_lazy("market:checkout")) + "?session_id={CHECKOUT_SESSION_ID}",
+                                                    # uri ？                               # ?session_id クエリストリング
+                #決済キャンセルしたときのリダイレクト先
+                cancel_url = request.build_absolute_uri(reverse_lazy("market:index")),
+            )
+
+            # ここでOrderモデルを作る。
+
+            dic = {}
+            dic["product"] = cart.product
+            dic["user"] = request.user
+            dic["session_id"] = session["id"]
+
+            form = OrderForm(dic)
+            if not form.is_valid():
+                return redirect("market:single", cart.product.id)
+            form.save()
+            #このStripeのセッションIDをテンプレート上のJavaScriptにセットする。上記のビューで作ったセッションを顧客に渡し>て決済させるための物
+            context["session_id"] = session["id"]
 
         #この公開鍵を使ってテンプレート上のJavaScriptにセットする。顧客が入力する情報を暗号化させるための物
         context["public_key"] = settings.STRIPE_PUBLISHABLE_KEY
-
-        #このStripeのセッションIDをテンプレート上のJavaScriptにセットする。上記のビューで作ったセッションを顧客に渡し>て決済させるための物
-        context["session_id"] = session["id"]
 
         return render(request, "market/session_create.html" ,context)
 
@@ -338,6 +377,7 @@ session_create = SessionCreateView.as_view()
 # 本当にStripeで決済を済ませたのか、確認するビュー
 class CheckoutView(View):
     def get(self, request, *args, **kwargs):
+        context = {}
         stripe.api_key = settings.STRIPE_API_KEY
 
         #セッションIDがパラメータに存在するかチェック。なければエラー画面へ
@@ -359,7 +399,28 @@ class CheckoutView(View):
         print("決済完了")
         #TODO: Productと決済した人を1対多で紐付ける。誰がこの商品を決済したか記録するため  Product と決済した人は１対１では？
         #TODO:できればこのページは注文完了のレンダリングを
-        return redirect("market:index")
+        #return redirect("market:index")
+
+        #TODO: ここで対象商品に決済時刻を記録する。
+        order = Order.objects.filter(session_id=request.GET["session_id"]).first()
+        if not order.payment_dt:
+            order.payment_dt = timezone.now()
+            order.save()
+
+            # ここで決済完了した旨をメールで知らせる。
+            # settings.pyに指定した、EMAIL_BACKENDを使っている。
+            email = request.user.email
+
+            subject = "購入完了"
+            message = "落札おめでとうございます。"
+
+            from_email = huga@gmail.com      # huga@gmail.com ？
+            recipient_list = [email]
+            send_mail(subject, message, from_email, recipient_list)
+
+        context["order"] = order
+
+        return render(request, "market/checkout.html", context)
     
 checkout = CheckoutView.as_view()
 

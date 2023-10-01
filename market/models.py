@@ -56,3 +56,16 @@ class Message(models.Model):
     dt = models.DateTimeField(verbose_name="投稿日時", default=timezone.now)
     # １対多でユーザーモデルと紐つける。
     user = models.ForeignKey(User, verbose_name='投稿者', on_delete=models.SET_NULL, null=True, blank=True)
+
+
+# 注文とセッションidを記録する
+class Order(models.Model):
+    dt = models.DateTimeField(verbose_name="注文日時", default=timezone.now)
+    # 1対1 フィールド (商品1つに対して、注文は1個)
+    product = models.OneToOneField(Product, verbose_name="商品", on_delete=models.CASCADE)
+    # 1対多 フィールド
+    user = models.ForeignKey(User, verbose_name="購入希望者", on_delete=models.CASCADE)
+    session_id = models.TextField(verbose_name="session id")
+    payment_dt = models.DateTimeField(verbose_name="支払い日時", null=True, blank=True)
+    delivery_dt = models.DateTimeField(verbose_name="配送日時", null=True, blank=True)
+

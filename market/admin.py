@@ -1,9 +1,10 @@
 from django.contrib import admin
-from .models import Category, Product, Cart, Message
+from .models import Category, Product, Cart, Message, Order
 
-# category と product を管理サイトで操作できるようにする。
+# modelを管理サイトで操作できるようにする。
 admin.site.register(Category)
 admin.site.register(Product)
 admin.site.register(Cart)
 admin.site.register(Message)
+admin.site.register(Order)
 
