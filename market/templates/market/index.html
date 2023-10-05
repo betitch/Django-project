@@ -6,9 +6,10 @@
 
 
 {% block main %}   
+{% if request.user.is_authenticated %}  {# ログイン済みユーザーかどうかを判定 #}
 {# <a href="{% url 'market:mylist' user.id %}">マイリストページへ</a><br> #} {# user.id はいらない？ #}
 <a href="{% url 'market:mylist' %}">マイリストページへ</a><br>
-
+{% endif %}
 
 {% for category in categories %}
 {{ category.name }}<br>

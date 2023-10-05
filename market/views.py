@@ -5,8 +5,8 @@ from .forms import ProductForm,CartForm, UserForm, MessageForm, OrderForm
 from django.utils import timezone
 # import magic  # ← ファイルの種類を判定するライブラリ。（今回は使用しない）
 from django.db.models import Q    # Query ビルダを使うため、import
-
 from django.forms.models import model_to_dict    # MyEditView で使用
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # ALLOWED_MIME = ["application/pdf"]
 
@@ -101,7 +101,7 @@ class SingleView(View):
 single = SingleView.as_view()
 
 
-class MyListView(View):
+class MyListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         products = Product.objects.filter(user=request.user)
         carts = Cart.objects.filter(user=request.user)
@@ -111,7 +111,7 @@ class MyListView(View):
 mylist = MyListView.as_view()
 
 # 新規投稿用
-class MyPostView(View):
+class MyPostView(LoginRequiredMixin, View):
     # 投稿したらすぐに、投稿した商品の個別ページを表示させる。
     def get(self, request, *args, **kwargs):
         context = {}               # 初期化する時としない時があるのは何故？
@@ -181,7 +181,7 @@ class MyPostView(View):
 mypost = MyPostView.as_view()
 
 
-class MyEditView(View):                           
+class MyEditView(LoginRequiredMixin, View):                           
     """ Edit は get いらないんだっけ？
     def get(self, request, pk, *args, **kwargs):
         product = Product.objects.filter(id=pk).first()  
@@ -214,7 +214,7 @@ class MyEditView(View):
 myedit = MyEditView.as_view()
 
 
-class MyDeleteView(View):
+class MyDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         product = Product.objects.filter(id=pk).first()
         product.delete()
@@ -229,7 +229,7 @@ mydelete = MyDeleteView.as_view()
 
 
 # 出品した商品を入札できない状態にする。
-class ProductBidStatusView(View):
+class ProductBidStatusView(LoginRequiredMixin, View):
      
      # 商品の入札状態を変更する。pk はProduct.id
      def post(self, request, pk, *args, **kwargs):
@@ -251,7 +251,7 @@ product_bid_status = ProductBidStatusView.as_view()
 
 
 # メッセージの保存を受け付けるビューを作る
-class MessageView(View):
+class MessageView(LoginRequiredMixin, View):
                           # pk は product の id
     def post(self, request, pk, *args, **kwargs): 
         # 送られたデータをコピー
@@ -270,7 +270,7 @@ message = MessageView.as_view()
 
 
 
-class MypageView(View):
+class MypageView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
 
         return render(request, "market/mypage.html")  # こっちはパス
@@ -302,7 +302,7 @@ from django.urls import reverse_lazy    # 何か逆引き用 class 内では rev
 import os
 
 
-class SessionCreateView(View):
+class SessionCreateView(View):           # LoginRequiredMixin 必要？
     # このpkはCartのid
     def get(self, request, pk, *args, **kwargs):
         context = {}
@@ -414,7 +414,7 @@ class CheckoutView(View):
             subject = "購入完了"
             message = "落札おめでとうございます。"
 
-            from_email = huga@gmail.com      # huga@gmail.com ？
+            from_email = "huga@gmail.com"      # huga@gmail.com ？ 管理者のメールアドレスになる
             recipient_list = [email]
             send_mail(subject, message, from_email, recipient_list)
 

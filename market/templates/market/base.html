@@ -10,11 +10,17 @@
 </head>
 
 <body>
-    <header class="row" style="position:sticky;top:0;">
-        <div class="col-6 me-auto">
-            <a href="{% url 'market:index' %}"><img src="{% static 'market/sitelogo.png' %}" style="width:250px;"></a>
-        </div>  
-        <div class="col-6 ms-auto btn-secondary " style="width: 180px;">
+    <header class="d-flex align-items-center" style="position:sticky;top:0; background-color: #ffebcd;">
+        <div class="flex-shrink-0" style="margin-right: 20px;">
+            <a href="{% url 'market:index' %}">
+                <img src="{% static 'market/sitelogo.png' %}" style="width:250px; max-height: 100px; overflow: visible;">
+            </a>
+        </div>
+        <div class="flex-grow-1">
+            <p>出品者と入札者を繋ぐプラットフォームです。<br>
+                物語のある商品、特定分野の商品、ユーザー間でのコミュニケーション等、機能拡張予定です。</p>
+        </div>
+        <div class="ms-3" style="width: 180px;">
             {% if request.user.is_authenticated %}
             <div>ログイン中です</div>
             <a href="{% url 'account_logout' %}">ログアウト</a>
@@ -24,7 +30,7 @@
             {% endif %}
         </div> 
     </header>
-    <main>  
+    <main class="ms-3">  
         {% block main %}
         {% endblock %}
     </main>
