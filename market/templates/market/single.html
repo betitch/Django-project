@@ -19,11 +19,10 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
                 <img src="{{ product.image.url }}" class="img-fluid" alt="">
             </div>
         </div>
-        <div class="col-5 ">
+        <div class="col-5">
             <textarea placeholder="{{ product.description }}" style="width:400px; height:300px;"></textarea>     {# 四角で囲みたい #}
-            
+            <div>出品価格： {{ product.price }}円</div>
             <div>入札期限： {{ product.deadline }}</div>
-            <br>      {# ← 水平線を書くHTML #}
             {# 入札期限も考慮して、入札可否を判定する。 #}
             入札可否状態：
             {% if product.is_bid and product.deadline > now %}    {# 入札期限が入ってないと 入札できなくなってるかな？ #}
@@ -32,14 +31,7 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
             入札できません。
             {% endif %}
             
-            {% if product.user == request.user %}
-            {# ProductBidStatusView へ postメソッドで送信。  url の product_bid_status はページとしては、表示されない？ #}
-            {# action未指定の場合は、このページを表示しているViewへ行き着く。この場合はSingleView。HTMLのformタグ、action属性の仕様による #}
-            <form action="{% url 'market:product_bid_status' product.id %}" method="post">   
-                {% csrf_token %}                                {# .id は model 作成時点で default で付与される → プライマリキー #}                                           
-                <input type="submit" value="入札可否変更">    {# Post されると、View 側でブーリアンを反転させる仕様になっている #}
-            </form>
-
+            {% if product.user == request.user %}    
             <style>
                 .edit_chk {
                     display: none;
@@ -52,63 +44,72 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
                     display: block;
                 }
             </style>
-            <input id="edit_chk" class="edit_chk" type="checkbox">     {# この checkbox を介する必要ある？ #}
-            <label class="btn btn-success" for="edit_chk">入力内容を編集</label> 
-
-            <form class="edit_area" enctype="multipart/form-data" action="{% url 'market:myedit' product.id %}" method="post">   {# url の逆引き #} 
-                {% csrf_token %}
-                <label for="category">カテゴリ</label>
-                <select name="category" id="category">
-                    {% for category in categories %}  
-                    <option value="{{ category.id }}" {% if product.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
-                    {% endfor %}
-                </select><br><br>
-        
-                {# 入力必須項目等を表示するには？ #}
-                <label for="name">商品名：</label>
-                <input type="text" id="name" name="name" value="{{ product.name}}"><br><br>
-        
-                <label for="image">商品画像：</label>            
-                <input type="file" id="image" name="image"><br><br>
-
-                <label for="description">商品説明</label>
-                <textarea id="description" name="description">{{ product.description }}</textarea><br><br> 
-
-                <label for="price">希望売却価格</label>
-                <input type="number" id="priice" name="price" value="{{ product.price}}"><br><br>
-
-                <label for="deadline">出品期限</label>
-                <input type="date" id="deadline" name="deadline" value="{{ product.deadline}}"><br><br>
-    
-                <input type="submit" value="変更する">
-            </form>
-
-            <form action="{% url 'market:mydelete' product.id %}" method="post" style="display: inline-block;" onsubmit="if(confirm('本当に削除しますか？')){ return true } else { return false};"> 
-                {% csrf_token %}
-                <input class="btn btn-danger" type="submit" value="出品を取り消す">
-            </form>
-
+            <div class="button d-flex justify-content-between flex-wrap">
+                <input id="edit_chk" class="edit_chk" type="checkbox">     {# この checkbox を介する必要ある？ #}
+                <label class="btn btn-success" for="edit_chk">入力内容を編集</label> 
+                
+                {# ProductBidStatusView へ postメソッドで送信。  url の product_bid_status はページとしては、表示されない？ #}
+                {# action未指定の場合は、このページを表示しているViewへ行き着く。この場合はSingleView。HTMLのformタグ、action属性の仕様による #}
+                <form action="{% url 'market:product_bid_status' product.id %}" method="post">   
+                    {% csrf_token %}                                {# .id は model 作成時点で default で付与される → プライマリキー #}                                           
+                    <input class="btn btn-secondary" type="submit" value="入札可否変更">    {# Post されると、View 側でブーリアンを反転させる仕様になっている #}
+                </form>
+                
+                <form action="{% url 'market:mydelete' product.id %}" method="post" style="display: inline-block;" onsubmit="if(confirm('出品を取りやめますか？')){ return true } else { return false};"> 
+                    {% csrf_token %}
+                    <input class="btn btn-danger" type="submit" value="出品を取り消す">
+                </form>
+                <div class="w-100"></div>
+                <form class="edit_area float-start" enctype="multipart/form-data" action="{% url 'market:myedit' product.id %}" method="post">   {# url の逆引き #} 
+                    {% csrf_token %}
+                    <label for="category">カテゴリ</label>
+                    <select name="category" id="category">
+                        {% for category in categories %}  
+                        <option value="{{ category.id }}" {% if product.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select><br><br>
+                    
+                    {# 入力必須項目等を表示するには？ #}
+                    <label for="name">商品名：</label>
+                    <input type="text" id="name" name="name" value="{{ product.name}}"><br><br>
+                    
+                    <label for="image">商品画像：</label>            
+                    <input type="file" id="image" name="image"><br><br>
+                    
+                    <label for="description">商品説明</label>
+                    <textarea id="description" name="description">{{ product.description }}</textarea><br><br> 
+                    
+                    <label for="price">希望売却価格</label>
+                    <input type="number" id="priice" name="price" value="{{ product.price}}"><br><br>
+                    
+                    <label for="deadline">出品期限</label>
+                    <input type="date" id="deadline" name="deadline" value="{{ product.deadline}}"><br><br>
+                    
+                    <input type="submit" value="変更する">
+                </form>
+            </div>
             {% endif %}
         </div>
     </div>
-    
-    <h5>入札状況（上位３者）</h5>
-    <table class="table tabele-striped table-hover tabele-bordered">
-        <thead>
+    <div class="bid-table py-3">
+        <h5>入札状況（上位３者）</h5>
+        <table class="table tabele-striped table-hover tabele-bordered">
+            <thead>
+                <tr>
+                    <th>出品価格</th>
+                    <th>最高入札価格</th>
+                    <th>入札者</th>
+                </tr>
+            </thead>
+            {% for cart in top_three_bidders %}          
             <tr>
-                <th>出品価格</th>
-                <th>最高入札価格</th>
-                <th>入札者</th>
+                <td>{{ product.price }}円</td>
+                <td>{{ cart.price }}円</td>
+                <td>{{ cart.user }}</td>
             </tr>
-        </thead>
-        {% for cart in top_three_bidders %}          
-        <tr>
-            <td>{{ product.price }}円</td>
-            <td>{{ cart.price }}円</td>
-            <td>{{ cart.user }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+            {% endfor %}
+        </table>
+    </div>
 
         {# TODO:モデルメソッドを使った呼び出し。？ #}
         {% comment %}
@@ -121,40 +122,78 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
         {% endfor %}
         {% endcomment %}
 
-        {# 最高値で入札した人のuser とリクエストを送ったuserが一致する場合、落札リンクを表示。#}
-        {% if highest.user == request.user %}
-        <div>落札おめでとうございます。購入処理を行なって下さい。</div>
-        <a href="{% url 'market:session_create' highest.id %}">リンク</a>  {# highest は、views の方で、クエリビルダで作成済み #}
+    {% if product.user == request.user %}
+    <h5>入札希望者からのコメント</h5>
+    <table class="table tabele-striped table-hover tabele-bordered">
+        <thead>
+            <tr>
+                <th>発信者</th>
+                <th>コメント</th>
+                <th>投稿日時</th>
+            </tr>
+        </thead>
+        {% for message in messages %}       {# messages は product に紐づいている(SingleView 参照) #}   
+        <tr>
+            <td>{{ message.user }}:</td>
+            <td>{{ message.content }}:</td>
+            <td>{{ message.dt }}</td>
+        </tr>
+        {% endfor %}
+    </table>        
+    {% endif %}
+
+
+    {# 最高値で入札した人のuser とリクエストを送ったuserが一致する場合、落札リンクを表示。#}
+    {% if highest.user == request.user %}
+    <h5>落札おめでとうございます。購入処理を行なって下さい。</h5>
+    <a href="{% url 'market:session_create' highest.id %}">リンク</a>  {# highest は、views の方で、クエリビルダで作成済み #}
+    {% endif %}
+
+    {% if not request.user.is_authenticated %}
+        <h5>入札する場合は、ログインして下さい</h5>
+    {% endif %}
+
+    {% if product.user != request.user and request.user.is_authenticated %}
+        <h5>入札：希望金額を入力して下さい</h5>
+    
+        {# フォームの送信先はSingleViewのpostメソッド #}
+        {# 期限内であり、is_bidがTrueである #}
+        {% if product.is_bid and product.deadline > now %}
+            <form action="" method="post">
+            {% csrf_token %}
+            <input type="number" name="price">
+            <input type="submit" value="入札">
+            </form>
+        {% else %}
+            <div>現在この商品の入札はできません。</div>
         {% endif %}
-
-
-        {% if product.user != request.user %}
-            <h3>入札フォーム</h3>
         
-            {# フォームの送信先はSingleViewのpostメソッド #}
-            {# 期限内であり、is_bidがTrueである #}
-            {% if product.is_bid and product.deadline > now %}
-                <form action="" method="post">
-                {% csrf_token %}
-                <input type="number" name="price">
-                <input type="submit" value="入札">
-                </form>
-            {% else %}
-                <div>現在この商品の入札はできません。</div>
-            {% endif %}
-            
-            <h3>質問フォーム</h3>
-            
-            <form action="{% url 'market:message' product.id}" method="post">
+        <div class="contact py-5">
+            <h5>出品者へコンタクト</h5>
+            <form action="{% url 'market:message' product.id %}" method="post">
                 {% csrf_token %}
                 <input type="text" name="content">
                 <input type="submit" value="送信">
             </form>
-            
-            {% for message in messages %}
-            <div>{{ message.dt }}: {{ message.content }}: {{ message.user }}</div>
-            {% endfor %}  
-        {% endif %}
+    
+            <table class="table tabele-striped table-hover tabele-bordered">
+            <thead>
+                <tr>
+                    <th>発信者</th>
+                    <th>コメント</th>
+                    <th>投稿日時</th>
+                </tr>
+            </thead>
+            {% for message in messages %}    
+            <tr>
+                <td>{{ message.user }}:</td>
+                <td>{{ message.content }}:</td>
+                <td>{{ message.dt }}</td>
+            </tr>
+            {% endfor %}
+            </table>        
+        </div>
+    {% endif %}
 </div>
 
 {% endblock %}
