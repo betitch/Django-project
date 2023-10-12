@@ -59,7 +59,7 @@ HTML のコメント <!--  --> が、Django のブロック内に入るとエラ
                     {% csrf_token %}
                     <input class="btn btn-danger" type="submit" value="出品を取り消す">
                 </form>
-                <div class="w-100"></div>
+                <div class="w-100"></div>    {# d-flex での改行用 #}
                 <form class="edit_area float-start" enctype="multipart/form-data" action="{% url 'market:myedit' product.id %}" method="post">   {# url の逆引き #} 
                     {% csrf_token %}
                     <label for="category">カテゴリ</label>
